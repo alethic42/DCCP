@@ -1,0 +1,38 @@
+[
+    {
+        "wave": 1,
+        "enemies": [
+            { "type": "goblin", "count": 8, "interval": 0.7 }
+        ]
+    },
+    {
+        "wave": 2,
+        "enemies": [
+            { "type": "goblin", "count": 10, "interval": 0.6 },
+            { "type": "orc", "count": 4, "interval": 0.9 }
+        ]
+    },
+    {
+        "wave": 3,
+        "enemies": [
+            { "type": "goblin", "count": 12, "interval": 0.5 },
+            { "type": "orc", "count": 8, "interval": 0.8 }
+        ]
+    },
+    {
+        "wave": 4,
+        "enemies": [
+            { "type": "orc", "count": 10, "interval": 0.7 },
+            { "type": "troll", "count": 4, "interval": 1.0 }
+        ]
+    },
+    {
+        "wave": 5,
+        "enemies": [
+            { "type": "goblin", "count": 10, "interval": 0.4 },
+            { "type": "orc", "count": 8, "interval": 0.6 },
+            { "type": "troll", "count": 5, "interval": 0.9 },
+            { "type": "boss", "count": 1, "interval": 1.5 }
+        ]
+    }
+]
