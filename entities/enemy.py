@@ -144,6 +144,31 @@ class Enemy:
         """
         return self.path_index
 
+    def get_state_data(self):
+        return {
+            "enemy_type": self.enemy_type,
+            "hp": self.hp,
+            "x": self.x,
+            "y": self.y,
+            "path_index": self.path_index,
+            "slow_timer": self.slow_timer,
+            "slow_ratio": self.slow_ratio,
+            "speed": self.speed,
+        }
+
+    def load_state_data(self, data):
+        self.hp = min(data.get("hp", self.max_hp), self.max_hp)
+        self.x = float(data.get("x", self.x))
+        self.y = float(data.get("y", self.y))
+        self.path_index = data.get("path_index", self.path_index)
+        self.slow_timer = data.get("slow_timer", 0)
+        self.slow_ratio = data.get("slow_ratio", 1.0)
+        self.speed = data.get("speed", self.base_speed)
+
+        if self.hp <= 0:
+            self.hp = 0
+            self.alive = False
+
     def draw(self, screen):
         if not self.alive:
             return

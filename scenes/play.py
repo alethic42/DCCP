@@ -29,6 +29,7 @@ from settings import (
 from systems.pathfinding import PathFinder
 from systems.wave_manager import WaveManager
 from systems.economy import Economy
+from entities.enemy import Enemy
 from entities.tower import Tower
 from ui.hud import HUD
 
@@ -53,6 +54,9 @@ class PlayScene:
         self.projectiles = []
 
         self.hud = HUD()
+        self.hud.upgrade_button.on_click = self.upgrade_selected_tower
+        self.hud.sell_button.on_click = self.sell_selected_tower
+        self.hud.merge_button.on_click = self.merge_selected_tower
         self.selected_tower = None
 
         self.dragging_tower = None
@@ -212,6 +216,63 @@ class PlayScene:
                 tower.selected = False
 
         self.recompute_path()
+
+    def upgrade_selected_tower(self):
+        tower = self.selected_tower
+
+        if tower is None:
+            self.message = "Select a tower first."
+            return
+
+        if not tower.can_upgrade():
+            self.message = "Tower is already max level."
+            return
+
+        if not self.economy.spend_gold(tower.upgrade_cost):
+            self.message = "Not enough gold."
+            return
+
+        tower.upgrade()
+        self.message = f"{tower.name} upgraded."
+
+    def sell_selected_tower(self):
+        tower = self.selected_tower
+
+        if tower is None:
+            self.message = "Select a tower first."
+            return
+
+        self.economy.add_gold(tower.sell_value)
+        self.grid[tower.row][tower.col] = EMPTY
+
+        if tower in self.towers:
+            self.towers.remove(tower)
+
+        self.selected_tower = None
+        tower.selected = False
+        self.recompute_path()
+        self.message = f"{tower.name} sold."
+
+    def merge_selected_tower(self):
+        tower = self.selected_tower
+
+        if tower is None:
+            self.message = "Select a tower first."
+            return
+
+        for other in self.towers:
+            if other is tower:
+                continue
+
+            if tower.can_merge_with(other):
+                tower.merge()
+                self.grid[other.row][other.col] = EMPTY
+                self.towers.remove(other)
+                self.recompute_path()
+                self.message = "Merged!"
+                return
+
+        self.message = "No matching tower to merge."
 
     def get_tower_under_mouse(self, pos, exclude=None):
         x, y = pos
@@ -385,6 +446,11 @@ class PlayScene:
                 }
                 for tower in self.towers
             ],
+            "enemies": [
+                enemy.get_state_data()
+                for enemy in self.enemies
+                if enemy.alive
+            ],
         }
 
         os.makedirs(os.path.dirname(SAVE_DATA_PATH), exist_ok=True)
@@ -394,7 +460,6 @@ class PlayScene:
 
     def load_state(self, data):
         self.economy.load_state_data(data.get("economy", {}))
-        self.wave_manager.load_state_data(data.get("wave", {}))
 
         for tower_data in data.get("towers", []):
             tower = Tower(
@@ -410,6 +475,24 @@ class PlayScene:
             self.grid[tower.row][tower.col] = TOWER
 
         self.recompute_path()
+        self.wave_manager.load_state_data(data.get("wave", {}))
+        self.load_enemies(data.get("enemies", []))
+
+    def load_enemies(self, enemies_data):
+        if not self.path:
+            return
+
+        for enemy_data in enemies_data:
+            enemy_type = enemy_data.get("enemy_type")
+
+            if enemy_type is None:
+                continue
+
+            enemy = Enemy(enemy_type, self.path)
+            enemy.load_state_data(enemy_data)
+
+            if enemy.alive:
+                self.enemies.append(enemy)
 
     def clear_save(self):
         if os.path.exists(SAVE_DATA_PATH):

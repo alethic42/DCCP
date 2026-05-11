@@ -109,6 +109,10 @@ class WaveManager:
         if not self.wave_active:
             return 0
 
+        if not self.path:
+            self.message = "No valid path for wave."
+            return 0
+
         spawned_count = 0
 
         if self.spawn_queue:
@@ -171,13 +175,19 @@ class WaveManager:
     def get_state_data(self):
         return {
             "current_wave_index": self.current_wave_index,
+            "spawn_queue": self.spawn_queue,
+            "spawn_timer": self.spawn_timer,
             "wave_active": self.wave_active,
             "waiting_for_next_wave": self.waiting_for_next_wave,
             "all_waves_cleared": self.all_waves_cleared,
+            "message": self.message,
         }
 
     def load_state_data(self, data):
         self.current_wave_index = data.get("current_wave_index", 0)
+        self.spawn_queue = data.get("spawn_queue", [])
+        self.spawn_timer = data.get("spawn_timer", 0)
         self.wave_active = data.get("wave_active", False)
         self.waiting_for_next_wave = data.get("waiting_for_next_wave", True)
         self.all_waves_cleared = data.get("all_waves_cleared", False)
+        self.message = data.get("message", self.message)
